@@ -12,6 +12,10 @@ import {
   Loader2,
   Sparkles,
   X,
+  Github,
+  Link as LinkIcon,
+  Mic,
+  Languages,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +33,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import JSZip from "jszip";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import Link from "next/link";
 
 type Format = "jpeg" | "png" | "webp";
 
@@ -252,147 +257,197 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-background p-4 sm:p-8 flex items-center justify-center">
-      <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card className="flex flex-col">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Sparkles className="text-accent h-6 w-6" />
-              <CardTitle className="text-2xl font-headline">Image Resizer</CardTitle>
-            </div>
-            <CardDescription>Upload, resize, and optimize your images in seconds.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-grow space-y-6">
-            <div
-              className={cn(
-                "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors duration-200",
-                isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
-              )}
-              onClick={() => fileInputRef.current?.click()}
-              onDragEnter={(e) => handleDrag(e, true)}
-              onDragLeave={(e) => handleDrag(e, false)}
-              onDragOver={(e) => handleDrag(e, true)}
-              onDrop={handleDrop}
-            >
-              <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
-              <p className="mt-4 text-sm text-muted-foreground">
-                <span className="font-semibold text-accent">Click to upload</span> or drag and drop
-              </p>
-              <p className="text-xs text-muted-foreground">PNG, JPG, WEBP up to 10MB</p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                accept="image/*"
-                onChange={onFileChange}
-                multiple
-              />
-            </div>
-            
-            {images.length > 0 && (
-              <div className="space-y-6 animate-in fade-in duration-500">
-                <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-4 items-end">
-                    <div className="space-y-2">
-                        <Label htmlFor="width">Width (px)</Label>
-                        <Input id="width" type="number" value={width} onChange={(e) => { setWidth(e.target.value); setLastEdited('width'); }} placeholder={images.length > 1 ? "Auto" : ""} />
-                    </div>
-                    <Button variant="ghost" size="icon" className="mb-1" onClick={() => setKeepAspectRatio(!keepAspectRatio)}>
-                        {keepAspectRatio ? <Lock className="h-5 w-5" /> : <Unlock className="h-5 w-5 text-muted-foreground" />}
-                    </Button>
-                    <div className="space-y-2">
-                        <Label htmlFor="height">Height (px)</Label>
-                        <Input id="height" type="number" value={height} onChange={(e) => { setHeight(e.target.value); setLastEdited('height'); }} placeholder={images.length > 1 ? "Auto" : ""} />
-                    </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="format">Format</Label>
-                   <Select value={format} onValueChange={(v) => setFormat(v as Format)}>
-                    <SelectTrigger id="format" className="w-full">
-                      <SelectValue placeholder="Select a format" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="jpeg">JPEG</SelectItem>
-                      <SelectItem value="png">PNG</SelectItem>
-                      <SelectItem value="webp">WebP</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {format !== 'png' && (
-                  <div className="space-y-4 animate-in fade-in duration-300">
-                    <div className="flex justify-between items-center">
-                      <Label htmlFor="quality">Quality</Label>
-                      <span className="text-sm font-medium text-muted-foreground">{quality}%</span>
-                    </div>
-                    <Slider
-                      id="quality"
-                      min={1}
-                      max={100}
-                      step={1}
-                      value={[quality]}
-                      onValueChange={(v) => setQuality(v[0])}
-                    />
-                  </div>
+    <div className="flex flex-col min-h-screen bg-background">
+      <main className="flex-grow p-4 sm:p-8 flex items-center justify-center">
+        <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <Card className="flex flex-col">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Sparkles className="text-accent h-6 w-6" />
+                <CardTitle className="text-2xl font-headline">Image Resizer</CardTitle>
+              </div>
+              <CardDescription>Upload, resize, and optimize your images in seconds.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-grow space-y-6">
+              <div
+                className={cn(
+                  "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors duration-200",
+                  isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
                 )}
+                onClick={() => fileInputRef.current?.click()}
+                onDragEnter={(e) => handleDrag(e, true)}
+                onDragLeave={(e) => handleDrag(e, false)}
+                onDragOver={(e) => handleDrag(e, true)}
+                onDrop={handleDrop}
+              >
+                <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
+                <p className="mt-4 text-sm text-muted-foreground">
+                  <span className="font-semibold text-accent">Click to upload</span> or drag and drop
+                </p>
+                <p className="text-xs text-muted-foreground">PNG, JPG, WEBP up to 10MB</p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={onFileChange}
+                  multiple
+                />
+              </div>
+              
+              {images.length > 0 && (
+                <div className="space-y-6 animate-in fade-in duration-500">
+                  <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-4 items-end">
+                      <div className="space-y-2">
+                          <Label htmlFor="width">Width (px)</Label>
+                          <Input id="width" type="number" value={width} onChange={(e) => { setWidth(e.target.value); setLastEdited('width'); }} placeholder={images.length > 1 ? "Auto" : ""} />
+                      </div>
+                      <Button variant="ghost" size="icon" className="mb-1" onClick={() => setKeepAspectRatio(!keepAspectRatio)}>
+                          {keepAspectRatio ? <Lock className="h-5 w-5" /> : <Unlock className="h-5 w-5 text-muted-foreground" />}
+                      </Button>
+                      <div className="space-y-2">
+                          <Label htmlFor="height">Height (px)</Label>
+                          <Input id="height" type="number" value={height} onChange={(e) => { setHeight(e.target.value); setLastEdited('height'); }} placeholder={images.length > 1 ? "Auto" : ""} />
+                      </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="format">Format</Label>
+                     <Select value={format} onValueChange={(v) => setFormat(v as Format)}>
+                      <SelectTrigger id="format" className="w-full">
+                        <SelectValue placeholder="Select a format" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="jpeg">JPEG</SelectItem>
+                        <SelectItem value="png">PNG</SelectItem>
+                        <SelectItem value="webp">WebP</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {format !== 'png' && (
+                    <div className="space-y-4 animate-in fade-in duration-300">
+                      <div className="flex justify-between items-center">
+                        <Label htmlFor="quality">Quality</Label>
+                        <span className="text-sm font-medium text-muted-foreground">{quality}%</span>
+                      </div>
+                      <Slider
+                        id="quality"
+                        min={1}
+                        max={100}
+                        step={1}
+                        value={[quality]}
+                        onValueChange={(v) => setQuality(v[0])}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+            <CardFooter>
+              <Button
+                className="w-full"
+                size="lg"
+                onClick={handleDownload}
+                disabled={images.length === 0 || isProcessing}
+              >
+                {isProcessing ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="mr-2 h-4 w-4" />
+                )}
+                {isProcessing ? "Processing..." : `Download ${images.length > 1 ? `${images.length} Images` : 'Image'}`}
+              </Button>
+            </CardFooter>
+          </Card>
+
+          <Card className="flex items-center justify-center p-4 min-h-[400px] lg:min-h-0 bg-card/50">
+            {images.length > 0 ? (
+              <ScrollArea className="w-full h-full max-h-[70vh]">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-1">
+                  {images.map((image, index) => (
+                      <div key={index} className="relative group aspect-square">
+                      <NextImage
+                          src={image.preview}
+                          alt={`Image Preview ${index + 1}`}
+                          fill
+                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                          style={{ objectFit: 'cover' }}
+                          className="rounded-lg"
+                      />
+                       <Button
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeImage(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs text-center p-1 rounded-b-lg">
+                          {image.width}x{image.height}
+                      </div>
+                      </div>
+                  ))}
+                  </div>
+              </ScrollArea>
+            ) : (
+              <div className="text-center text-muted-foreground">
+                <FileImage className="mx-auto h-24 w-24" />
+                <p className="mt-4 font-medium">Image Preview</p>
+                <p className="text-sm">Your uploaded images will appear here.</p>
               </div>
             )}
-          </CardContent>
-          <CardFooter>
-            <Button
-              className="w-full"
-              size="lg"
-              onClick={handleDownload}
-              disabled={images.length === 0 || isProcessing}
-            >
-              {isProcessing ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="mr-2 h-4 w-4" />
-              )}
-              {isProcessing ? "Processing..." : `Download ${images.length > 1 ? `${images.length} Images` : 'Image'}`}
-            </Button>
-          </CardFooter>
-        </Card>
-
-        <Card className="flex items-center justify-center p-4 min-h-[400px] lg:min-h-0 bg-card/50">
-          {images.length > 0 ? (
-            <ScrollArea className="w-full h-full max-h-[70vh]">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-1">
-                {images.map((image, index) => (
-                    <div key={index} className="relative group aspect-square">
-                    <NextImage
-                        src={image.preview}
-                        alt={`Image Preview ${index + 1}`}
-                        fill
-                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        style={{ objectFit: 'cover' }}
-                        className="rounded-lg"
-                    />
-                     <Button
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => removeImage(index)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs text-center p-1 rounded-b-lg">
-                        {image.width}x{image.height}
-                    </div>
-                    </div>
-                ))}
-                </div>
-            </ScrollArea>
-          ) : (
-            <div className="text-center text-muted-foreground">
-              <FileImage className="mx-auto h-24 w-24" />
-              <p className="mt-4 font-medium">Image Preview</p>
-              <p className="text-sm">Your uploaded images will appear here.</p>
+          </Card>
+        </div>
+      </main>
+      <footer className="bg-muted text-muted-foreground p-6 mt-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="lg:col-span-2">
+              <h3 className="text-lg font-semibold text-foreground">Image Resizer</h3>
+              <p className="mt-2 text-sm">
+                A simple, free, and privacy-focused tool to resize, compress, and convert your images right in your browser. No uploads, no data collection.
+              </p>
+               <div className="mt-4 flex items-center gap-4">
+                <Link href="https://moaminsharifi.com" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors flex items-center gap-2">
+                  <LinkIcon className="h-4 w-4" />
+                  moaminsharifi.com
+                </Link>
+                <Link href="https://github.com/moaminsharifi/image-resizer" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors flex items-center gap-2">
+                  <Github className="h-4 w-4" />
+                  Source Code
+                </Link>
+               </div>
             </div>
-          )}
-        </Card>
-      </div>
-    </main>
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">Other Projects</h3>
+              <ul className="mt-2 space-y-2">
+                <li>
+                  <Link href="https://github.com/moaminsharifi/subtitle-flow" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors group">
+                    <div className="flex items-center gap-2 font-medium">
+                      <Languages className="h-4 w-4" />
+                      <span>Subtitle Flow</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/80 mt-1">A tool to create transcriptions with AI and export to any language.</p>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="https://github.com/moaminsharifi/auto-cast" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors group">
+                     <div className="flex items-center gap-2 font-medium">
+                       <Mic className="h-4 w-4" />
+                       <span>Auto Cast</span>
+                     </div>
+                    <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/80 mt-1">A tool to create podcasts with AI with a lot of customization.</p>
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-8 border-t border-border pt-6 text-center text-xs">
+            <p>&copy; {new Date().getFullYear()} Created by Moamin Sharifi. All Rights Reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }

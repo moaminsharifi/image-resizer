@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: 'Image Resizer',
-  description: 'Upload, resize, compress, and convert images easily.',
+  description: 'A free, privacy-friendly tool to resize, compress, and convert images in your browser.',
 };
 
 export default function RootLayout({
