@@ -423,21 +423,21 @@ export default function Home() {
               <h3 className="text-lg font-semibold text-foreground">Other Projects</h3>
               <ul className="mt-2 space-y-2">
                 <li>
-                  <Link href="https://github.com/moaminsharifi/subtitle-flow" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors group">
-                    <div className="flex items-center gap-2 font-medium">
-                      <Languages className="h-4 w-4" />
+                  <Link href="https://github.com/moaminsharifi/subtitle-flow" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors block p-2 -mx-2 rounded-md hover:bg-card/50">
+                    <div className="flex items-center gap-3 font-medium text-foreground">
+                      <Languages className="h-5 w-5 text-accent" />
                       <span>Subtitle Flow</span>
                     </div>
-                    <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/80 mt-1">A tool to create transcriptions with AI and export to any language.</p>
+                    <p className="text-xs text-muted-foreground mt-1 ml-8">A tool to create transcriptions with AI and export to any language.</p>
                   </Link>
                 </li>
                 <li>
-                  <Link href="https://github.com/moaminsharifi/auto-cast" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors group">
-                     <div className="flex items-center gap-2 font-medium">
-                       <Mic className="h-4 w-4" />
+                  <Link href="https://github.com/moaminsharifi/auto-cast" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors block p-2 -mx-2 rounded-md hover:bg-card/50">
+                     <div className="flex items-center gap-3 font-medium text-foreground">
+                       <Mic className="h-5 w-5 text-accent" />
                        <span>Auto Cast</span>
                      </div>
-                    <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/80 mt-1">A tool to create podcasts with AI with a lot of customization.</p>
+                    <p className="text-xs text-muted-foreground mt-1 ml-8">A tool to create podcasts with AI with a lot of customization.</p>
                   </Link>
                 </li>
               </ul>
