@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import JSZip from "jszip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Link from "next/link";
+import translations from '@/locales/en.json';
 
 type Format = "jpeg" | "png" | "webp";
 
@@ -63,8 +64,8 @@ export default function Home() {
     
     if(imageFiles.length === 0) {
         toast({
-            title: "No valid files",
-            description: "Please upload valid image files (PNG, JPEG, WebP, etc.).",
+            title: translations.toasts.noValidFiles.title,
+            description: translations.toasts.noValidFiles.description,
             variant: "destructive",
         });
         return;
@@ -147,8 +148,8 @@ export default function Home() {
   const handleDownload = async () => {
     if (images.length === 0) {
       toast({
-        title: "No Images",
-        description: "Please upload one or more images first.",
+        title: translations.toasts.noImages.title,
+        description: translations.toasts.noImages.description,
         variant: "destructive",
       });
       return;
@@ -233,7 +234,7 @@ export default function Home() {
         const zipBlob = await zip.generateAsync({ type: "blob" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(zipBlob);
-        link.download = `ImageResizer_processed_images.zip`;
+        link.download = translations.download.zipName;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -241,19 +242,29 @@ export default function Home() {
       }
       
        toast({
-        title: "Download Started",
-        description: "Your processed image(s) are downloading.",
+        title: translations.toasts.downloadStarted.title,
+        description: translations.toasts.downloadStarted.description,
       });
     } catch (error) {
       console.error("Processing error:", error);
       toast({
-        title: "Processing Error",
-        description: "Something went wrong while processing your images.",
+        title: translations.toasts.processingError.title,
+        description: translations.toasts.processingError.description,
         variant: "destructive",
       });
     } finally {
       setIsProcessing(false);
     }
+  };
+  
+  const getDownloadButtonText = () => {
+    if (isProcessing) {
+      return translations.download.processing;
+    }
+    if (images.length > 1) {
+      return translations.download.downloadMultiple.replace('{count}', String(images.length));
+    }
+    return translations.download.downloadSingle;
   };
 
   return (
@@ -264,9 +275,9 @@ export default function Home() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Sparkles className="text-accent h-6 w-6" />
-                <CardTitle className="text-2xl font-headline">Image Resizer</CardTitle>
+                <CardTitle className="text-2xl font-headline">{translations.main.title}</CardTitle>
               </div>
-              <CardDescription>Upload, resize, and optimize your images in seconds.</CardDescription>
+              <CardDescription>{translations.main.description}</CardDescription>
             </CardHeader>
             <CardContent className="flex-grow space-y-6">
               <div
@@ -282,9 +293,9 @@ export default function Home() {
               >
                 <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
                 <p className="mt-4 text-sm text-muted-foreground">
-                  <span className="font-semibold text-accent">Click to upload</span> or drag and drop
+                  <span className="font-semibold text-accent">{translations.upload.clickToUpload}</span> {translations.upload.dragAndDrop}
                 </p>
-                <p className="text-xs text-muted-foreground">PNG, JPG, WEBP up to 10MB</p>
+                <p className="text-xs text-muted-foreground">{translations.upload.fileTypes}</p>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -299,28 +310,28 @@ export default function Home() {
                 <div className="space-y-6 animate-in fade-in duration-500">
                   <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-4 items-end">
                       <div className="space-y-2">
-                          <Label htmlFor="width">Width (px)</Label>
-                          <Input id="width" type="number" value={width} onChange={(e) => { setWidth(e.target.value); setLastEdited('width'); }} placeholder={images.length > 1 ? "Auto" : ""} />
+                          <Label htmlFor="width">{translations.options.width}</Label>
+                          <Input id="width" type="number" value={width} onChange={(e) => { setWidth(e.target.value); setLastEdited('width'); }} placeholder={images.length > 1 ? translations.options.autoPlaceholder : ""} />
                       </div>
                       <Button variant="ghost" size="icon" className="mb-1" onClick={() => setKeepAspectRatio(!keepAspectRatio)}>
                           {keepAspectRatio ? <Lock className="h-5 w-5" /> : <Unlock className="h-5 w-5 text-muted-foreground" />}
                       </Button>
                       <div className="space-y-2">
-                          <Label htmlFor="height">Height (px)</Label>
-                          <Input id="height" type="number" value={height} onChange={(e) => { setHeight(e.target.value); setLastEdited('height'); }} placeholder={images.length > 1 ? "Auto" : ""} />
+                          <Label htmlFor="height">{translations.options.height}</Label>
+                          <Input id="height" type="number" value={height} onChange={(e) => { setHeight(e.target.value); setLastEdited('height'); }} placeholder={images.length > 1 ? translations.options.autoPlaceholder : ""} />
                       </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="format">Format</Label>
+                    <Label htmlFor="format">{translations.options.format}</Label>
                      <Select value={format} onValueChange={(v) => setFormat(v as Format)}>
                       <SelectTrigger id="format" className="w-full">
-                        <SelectValue placeholder="Select a format" />
+                        <SelectValue placeholder={translations.options.selectFormat} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="jpeg">JPEG</SelectItem>
-                        <SelectItem value="png">PNG</SelectItem>
-                        <SelectItem value="webp">WebP</SelectItem>
+                        <SelectItem value="jpeg">{translations.formats.jpeg}</SelectItem>
+                        <SelectItem value="png">{translations.formats.png}</SelectItem>
+                        <SelectItem value="webp">{translations.formats.webp}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -328,7 +339,7 @@ export default function Home() {
                   {format !== 'png' && (
                     <div className="space-y-4 animate-in fade-in duration-300">
                       <div className="flex justify-between items-center">
-                        <Label htmlFor="quality">Quality</Label>
+                        <Label htmlFor="quality">{translations.options.quality}</Label>
                         <span className="text-sm font-medium text-muted-foreground">{quality}%</span>
                       </div>
                       <Slider
@@ -356,7 +367,7 @@ export default function Home() {
                 ) : (
                   <Download className="mr-2 h-4 w-4" />
                 )}
-                {isProcessing ? "Processing..." : `Download ${images.length > 1 ? `${images.length} Images` : 'Image'}`}
+                {getDownloadButtonText()}
               </Button>
             </CardFooter>
           </Card>
@@ -369,7 +380,7 @@ export default function Home() {
                       <div key={index} className="relative group aspect-square">
                       <NextImage
                           src={image.preview}
-                          alt={`Image Preview ${index + 1}`}
+                          alt={`${translations.preview.alt} ${index + 1}`}
                           fill
                           sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                           style={{ objectFit: 'cover' }}
@@ -393,8 +404,8 @@ export default function Home() {
             ) : (
               <div className="text-center text-muted-foreground">
                 <FileImage className="mx-auto h-24 w-24" />
-                <p className="mt-4 font-medium">Image Preview</p>
-                <p className="text-sm">Your uploaded images will appear here.</p>
+                <p className="mt-4 font-medium">{translations.preview.title}</p>
+                <p className="text-sm">{translations.preview.description}</p>
               </div>
             )}
           </Card>
@@ -404,47 +415,47 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="lg:col-span-2">
-              <h3 className="text-lg font-semibold text-foreground">Image Resizer</h3>
+              <h3 className="text-lg font-semibold text-foreground">{translations.footer.title}</h3>
               <p className="mt-2 text-sm">
-                A simple, free, and privacy-focused tool to resize, compress, and convert your images right in your browser. No uploads, no data collection.
+                {translations.footer.description}
               </p>
                <div className="mt-4 flex items-center gap-4">
-                <Link href="https://moaminsharifi.com" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors flex items-center gap-2">
+                <Link href={translations.footer.credit.url} target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors flex items-center gap-2">
                   <LinkIcon className="h-4 w-4" />
-                  moaminsharifi.com
+                  {translations.footer.credit.text}
                 </Link>
-                <Link href="https://github.com/moaminsharifi/image-resizer" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors flex items-center gap-2">
+                <Link href={translations.footer.sourceCode.url} target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors flex items-center gap-2">
                   <Github className="h-4 w-4" />
-                  Source Code
+                  {translations.footer.sourceCode.text}
                 </Link>
                </div>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-foreground">Other Projects</h3>
+              <h3 className="text-lg font-semibold text-foreground">{translations.footer.otherProjects.title}</h3>
               <ul className="mt-2 space-y-2">
                 <li>
-                  <Link href="https://github.com/moaminsharifi/subtitle-flow" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors block p-2 -mx-2 rounded-md hover:bg-card/50">
+                  <Link href={translations.footer.otherProjects.subtitleFlow.url} target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors block p-2 -mx-2 rounded-md hover:bg-card/50">
                     <div className="flex items-center gap-3 font-medium text-foreground">
                       <Languages className="h-5 w-5 text-accent" />
-                      <span>Subtitle Flow</span>
+                      <span>{translations.footer.otherProjects.subtitleFlow.title}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1 ml-8">A tool to create transcriptions with AI and export to any language.</p>
+                    <p className="text-xs text-muted-foreground mt-1 ml-8">{translations.footer.otherProjects.subtitleFlow.description}</p>
                   </Link>
                 </li>
                 <li>
-                  <Link href="https://github.com/moaminsharifi/auto-cast" target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors block p-2 -mx-2 rounded-md hover:bg-card/50">
+                  <Link href={translations.footer.otherProjects.autoCast.url} target="_blank" rel="noopener noreferrer" className="text-sm hover:text-accent transition-colors block p-2 -mx-2 rounded-md hover:bg-card/50">
                      <div className="flex items-center gap-3 font-medium text-foreground">
                        <Mic className="h-5 w-5 text-accent" />
-                       <span>Auto Cast</span>
+                       <span>{translations.footer.otherProjects.autoCast.title}</span>
                      </div>
-                    <p className="text-xs text-muted-foreground mt-1 ml-8">A tool to create podcasts with AI with a lot of customization.</p>
+                    <p className="text-xs text-muted-foreground mt-1 ml-8">{translations.footer.otherProjects.autoCast.description}</p>
                   </Link>
                 </li>
               </ul>
             </div>
           </div>
           <div className="mt-8 border-t border-border pt-6 text-center text-xs">
-            <p>&copy; {new Date().getFullYear()} Created by Moamin Sharifi. All Rights Reserved.</p>
+            <p>&copy; {new Date().getFullYear()} {translations.footer.copyright}</p>
           </div>
         </div>
       </footer>

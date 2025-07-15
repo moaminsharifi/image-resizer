@@ -1,0 +1,83 @@
+{
+  "metadata": {
+    "title": "Image Resizer",
+    "description": "A free, privacy-friendly tool to resize, compress, and convert images in your browser."
+  },
+  "main": {
+    "title": "Image Resizer",
+    "description": "Upload, resize, and optimize your images in seconds."
+  },
+  "upload": {
+    "clickToUpload": "Click to upload",
+    "dragAndDrop": "or drag and drop",
+    "fileTypes": "PNG, JPG, WEBP up to 10MB"
+  },
+  "options": {
+    "width": "Width (px)",
+    "height": "Height (px)",
+    "autoPlaceholder": "Auto",
+    "format": "Format",
+    "selectFormat": "Select a format",
+    "quality": "Quality"
+  },
+  "formats": {
+    "jpeg": "JPEG",
+    "png": "PNG",
+    "webp": "WebP"
+  },
+  "download": {
+    "processing": "Processing...",
+    "downloadSingle": "Download Image",
+    "downloadMultiple": "Download {count} Images",
+    "zipName": "ImageResizer_processed_images.zip"
+  },
+  "preview": {
+    "title": "Image Preview",
+    "description": "Your uploaded images will appear here.",
+    "alt": "Image Preview"
+  },
+  "toasts": {
+    "noValidFiles": {
+      "title": "No valid files",
+      "description": "Please upload valid image files (PNG, JPEG, WebP, etc.)."
+    },
+    "noImages": {
+      "title": "No Images",
+      "description": "Please upload one or more images first."
+    },
+    "downloadStarted": {
+      "title": "Download Started",
+      "description": "Your processed image(s) are downloading."
+    },
+    "processingError": {
+      "title": "Processing Error",
+      "description": "Something went wrong while processing your images."
+    }
+  },
+  "footer": {
+    "title": "Image Resizer",
+    "description": "A simple, free, and privacy-focused tool to resize, compress, and convert your images right in your browser. No uploads, no data collection.",
+    "credit": {
+      "text": "moaminsharifi.com",
+      "url": "https://moaminsharifi.com"
+    },
+    "sourceCode": {
+      "text": "Source Code",
+      "url": "https://github.com/moaminsharifi/image-resizer"
+    },
+    "otherProjects": {
+      "title": "Other Projects",
+      "subtitleFlow": {
+        "title": "Subtitle Flow",
+        "description": "A tool to create transcriptions with AI and export to any language.",
+        "url": "https://github.com/moaminsharifi/subtitle-flow"
+      },
+      "autoCast": {
+        "title": "Auto Cast",
+        "description": "A tool to create podcasts with AI with a lot of customization.",
+        "url": "https://github.com/moaminsharifi/auto-cast"
+      }
+    },
+    "copyright": "Created by Moamin Sharifi. All Rights Reserved."
+  }
+}

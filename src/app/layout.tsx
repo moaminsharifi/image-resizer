@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
+import translations from '@/locales/en.json';
 
 export const metadata: Metadata = {
-  title: 'Image Resizer',
-  description: 'A free, privacy-friendly tool to resize, compress, and convert images in your browser.',
+  title: translations.metadata.title,
+  description: translations.metadata.description,
 };
 
 export default function RootLayout({
