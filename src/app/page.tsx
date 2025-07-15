@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, type ChangeEvent, type DragEvent } from "react";
@@ -10,6 +11,7 @@ import {
   Download,
   Loader2,
   Sparkles,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,14 +27,20 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import JSZip from "jszip";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type Format = "jpeg" | "png" | "webp";
 
+interface ImageInfo {
+  file: File;
+  preview: string;
+  width: number;
+  height: number;
+}
+
 export default function Home() {
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [originalDimensions, setOriginalDimensions] = useState<{ width: number; height: number } | null>(null);
-  
+  const [images, setImages] = useState<ImageInfo[]>([]);
   const [width, setWidth] = useState<string>("");
   const [height, setHeight] = useState<string>("");
   const [format, setFormat] = useState<Format>("jpeg");
@@ -45,34 +53,48 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handleImageUpload = (file: File) => {
-    if (file && file.type.startsWith("image/")) {
-      setImageFile(file);
+  const handleImageUpload = (files: FileList) => {
+    const imageFiles = Array.from(files).filter(file => file.type.startsWith("image/"));
+    
+    if(imageFiles.length === 0) {
+        toast({
+            title: "No valid files",
+            description: "Please upload valid image files (PNG, JPEG, WebP, etc.).",
+            variant: "destructive",
+        });
+        return;
+    }
+
+    imageFiles.forEach(file => {
       const reader = new FileReader();
       reader.onloadend = () => {
         const resultStr = reader.result as string;
-        setImagePreview(resultStr);
         const img = new Image();
         img.onload = () => {
-          setOriginalDimensions({ width: img.width, height: img.height });
-          setWidth(String(img.width));
-          setHeight(String(img.height));
+          setImages(prevImages => {
+            const newImage = {
+              file,
+              preview: resultStr,
+              width: img.width,
+              height: img.height,
+            };
+            if (prevImages.length === 0) {
+              setWidth(String(img.width));
+              setHeight(String(img.height));
+            }
+            return [...prevImages, newImage];
+          });
         };
         img.src = resultStr;
       };
       reader.readAsDataURL(file);
-    } else {
-      toast({
-        title: "Invalid File",
-        description: "Please upload a valid image file (PNG, JPEG, WebP, etc.).",
-        variant: "destructive",
-      });
-    }
+    });
   };
   
   const onFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleImageUpload(e.target.files[0]);
+    if (e.target.files) {
+      handleImageUpload(e.target.files);
+      e.target.value = ""; // Reset file input
     }
   };
 
@@ -84,39 +106,44 @@ export default function Home() {
   
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     handleDrag(e, false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleImageUpload(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files) {
+      handleImageUpload(e.dataTransfer.files);
     }
   };
 
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  }
+
   useEffect(() => {
-    if (!keepAspectRatio || !originalDimensions || lastEdited !== 'width') return;
+    if (!keepAspectRatio || images.length === 0 || lastEdited !== 'width') return;
     
-    const aspectRatio = originalDimensions.width / originalDimensions.height;
+    const firstImage = images[0];
+    const aspectRatio = firstImage.width / firstImage.height;
     const newWidth = parseInt(width, 10);
 
     if (!isNaN(newWidth)) {
       setHeight(String(Math.round(newWidth / aspectRatio)));
     }
-  }, [width, keepAspectRatio, originalDimensions, lastEdited]);
+  }, [width, keepAspectRatio, images, lastEdited]);
 
   useEffect(() => {
-    if (!keepAspectRatio || !originalDimensions || lastEdited !== 'height') return;
-
-    const aspectRatio = originalDimensions.width / originalDimensions.height;
+    if (!keepAspectRatio || images.length === 0 || lastEdited !== 'height') return;
+    
+    const firstImage = images[0];
+    const aspectRatio = firstImage.width / firstImage.height;
     const newHeight = parseInt(height, 10);
     
     if (!isNaN(newHeight)) {
       setWidth(String(Math.round(newHeight * aspectRatio)));
     }
-  }, [height, keepAspectRatio, originalDimensions, lastEdited]);
-
+  }, [height, keepAspectRatio, images, lastEdited]);
 
   const handleDownload = async () => {
-    if (!imageFile || !imagePreview) {
+    if (images.length === 0) {
       toast({
-        title: "No Image",
-        description: "Please upload an image first.",
+        title: "No Images",
+        description: "Please upload one or more images first.",
         variant: "destructive",
       });
       return;
@@ -125,45 +152,98 @@ export default function Home() {
     setIsProcessing(true);
 
     try {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("Could not get canvas context");
+      if (images.length === 1) {
+        // Single image download
+        const imageInfo = images[0];
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Could not get canvas context");
+        
+        const img = new Image();
+        img.src = imageInfo.preview;
+
+        await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+        });
+
+        const newWidth = parseInt(width, 10);
+        const newHeight = parseInt(height, 10);
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+        ctx.drawImage(img, 0, 0, newWidth, newHeight);
+
+        const mimeType = `image/${format}`;
+        const dataUrl = canvas.toDataURL(mimeType, format !== 'png' ? quality / 100 : undefined);
+
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        const originalName = imageInfo.file.name.substring(0, imageInfo.file.name.lastIndexOf('.'));
+        link.download = `${originalName}_${newWidth}x${newHeight}.${format}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        // Bulk download as zip
+        const zip = new JSZip();
+        const newWidth = parseInt(width, 10);
+        const newHeight = parseInt(height, 10);
+
+        for (const imageInfo of images) {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            if (!ctx) throw new Error("Could not get canvas context");
+            
+            const img = new Image();
+            img.src = imageInfo.preview;
+
+            await new Promise<void>((resolve, reject) => {
+                img.onload = () => resolve();
+                img.onerror = reject;
+            });
+            
+            // Adjust dimensions for each image while maintaining aspect ratio if locked
+            let finalWidth = newWidth, finalHeight = newHeight;
+            if(keepAspectRatio){
+                const aspectRatio = imageInfo.width / imageInfo.height;
+                if(lastEdited === 'width' || !lastEdited){
+                    finalHeight = Math.round(newWidth / aspectRatio);
+                } else {
+                    finalWidth = Math.round(newHeight * aspectRatio);
+                }
+            }
+
+            canvas.width = finalWidth;
+            canvas.height = finalHeight;
+            ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
+
+            const mimeType = `image/${format}`;
+            const dataUrl = canvas.toDataURL(mimeType, format !== 'png' ? quality / 100 : undefined);
+            
+            const originalName = imageInfo.file.name.substring(0, imageInfo.file.name.lastIndexOf('.'));
+            const fileName = `${originalName}_${finalWidth}x${finalHeight}.${format}`;
+            zip.file(fileName, dataUrl.split(',')[1], { base64: true });
+        }
+
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(zipBlob);
+        link.download = `Imagerite_processed_images.zip`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+      }
       
-      const img = new Image();
-      img.src = imagePreview;
-
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-      });
-
-      const newWidth = parseInt(width, 10);
-      const newHeight = parseInt(height, 10);
-
-      canvas.width = newWidth;
-      canvas.height = newHeight;
-
-      ctx.drawImage(img, 0, 0, newWidth, newHeight);
-
-      const mimeType = `image/${format}`;
-      const dataUrl = canvas.toDataURL(mimeType, format !== 'png' ? quality / 100 : undefined);
-
-      const link = document.createElement("a");
-      link.href = dataUrl;
-      const originalName = imageFile.name.substring(0, imageFile.name.lastIndexOf('.'));
-      link.download = `${originalName}_${newWidth}x${newHeight}.${format}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
        toast({
         title: "Download Started",
-        description: "Your processed image is downloading.",
+        description: "Your processed image(s) are downloading.",
       });
     } catch (error) {
       console.error("Processing error:", error);
       toast({
         title: "Processing Error",
-        description: "Something went wrong while processing your image.",
+        description: "Something went wrong while processing your images.",
         variant: "destructive",
       });
     } finally {
@@ -205,22 +285,23 @@ export default function Home() {
                 className="hidden"
                 accept="image/*"
                 onChange={onFileChange}
+                multiple
               />
             </div>
             
-            {imageFile && (
+            {images.length > 0 && (
               <div className="space-y-6 animate-in fade-in duration-500">
                 <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-4 items-end">
                     <div className="space-y-2">
                         <Label htmlFor="width">Width (px)</Label>
-                        <Input id="width" type="number" value={width} onChange={(e) => { setWidth(e.target.value); setLastEdited('width'); }} />
+                        <Input id="width" type="number" value={width} onChange={(e) => { setWidth(e.target.value); setLastEdited('width'); }} placeholder={images.length > 1 ? "Auto" : ""} />
                     </div>
                     <Button variant="ghost" size="icon" className="mb-1" onClick={() => setKeepAspectRatio(!keepAspectRatio)}>
                         {keepAspectRatio ? <Lock className="h-5 w-5" /> : <Unlock className="h-5 w-5 text-muted-foreground" />}
                     </Button>
                     <div className="space-y-2">
                         <Label htmlFor="height">Height (px)</Label>
-                        <Input id="height" type="number" value={height} onChange={(e) => { setHeight(e.target.value); setLastEdited('height'); }} />
+                        <Input id="height" type="number" value={height} onChange={(e) => { setHeight(e.target.value); setLastEdited('height'); }} placeholder={images.length > 1 ? "Auto" : ""} />
                     </div>
                 </div>
 
@@ -262,35 +343,52 @@ export default function Home() {
               className="w-full"
               size="lg"
               onClick={handleDownload}
-              disabled={!imageFile || isProcessing}
+              disabled={images.length === 0 || isProcessing}
             >
               {isProcessing ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Download className="mr-2 h-4 w-4" />
               )}
-              {isProcessing ? "Processing..." : "Download Image"}
+              {isProcessing ? "Processing..." : `Download ${images.length > 1 ? `${images.length} Images` : 'Image'}`}
             </Button>
           </CardFooter>
         </Card>
 
         <Card className="flex items-center justify-center p-4 min-h-[400px] lg:min-h-0 bg-card/50">
-          {imagePreview ? (
-            <div className="relative w-full h-full max-h-[70vh]">
-              <NextImage
-                src={imagePreview}
-                alt="Image Preview"
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                style={{ objectFit: 'contain' }}
-                className="rounded-lg"
-              />
-            </div>
+          {images.length > 0 ? (
+            <ScrollArea className="w-full h-full max-h-[70vh]">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-1">
+                {images.map((image, index) => (
+                    <div key={index} className="relative group aspect-square">
+                    <NextImage
+                        src={image.preview}
+                        alt={`Image Preview ${index + 1}`}
+                        fill
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        style={{ objectFit: 'cover' }}
+                        className="rounded-lg"
+                    />
+                     <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => removeImage(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs text-center p-1 rounded-b-lg">
+                        {image.width}x{image.height}
+                    </div>
+                    </div>
+                ))}
+                </div>
+            </ScrollArea>
           ) : (
             <div className="text-center text-muted-foreground">
               <FileImage className="mx-auto h-24 w-24" />
               <p className="mt-4 font-medium">Image Preview</p>
-              <p className="text-sm">Your uploaded image will appear here.</p>
+              <p className="text-sm">Your uploaded images will appear here.</p>
             </div>
           )}
         </Card>
