@@ -1,3 +1,4 @@
+
 {
   "metadata": {
     "title": "Image Resizer",
@@ -16,6 +17,7 @@
     "width": "Width (px)",
     "height": "Height (px)",
     "autoPlaceholder": "Auto",
+    "allImages": "All images",
     "format": "Format",
     "selectFormat": "Select a format",
     "quality": "Quality"
@@ -86,3 +88,5 @@
     "copyright": "Created by Moamin Sharifi. All Rights Reserved."
   }
 }
+
+    

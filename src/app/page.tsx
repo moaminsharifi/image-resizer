@@ -44,13 +44,15 @@ interface ImageInfo {
   preview: string;
   width: number;
   height: number;
+  targetWidth: string;
+  targetHeight: string;
 }
 
 export default function Home() {
   const { translations } = useLanguage();
   const [images, setImages] = useState<ImageInfo[]>([]);
-  const [width, setWidth] = useState<string>("");
-  const [height, setHeight] = useState<string>("");
+  const [globalWidth, setGlobalWidth] = useState<string>("");
+  const [globalHeight, setGlobalHeight] = useState<string>("");
   const [format, setFormat] = useState<Format>("jpeg");
   const [quality, setQuality] = useState<number>(80);
   const [keepAspectRatio, setKeepAspectRatio] = useState<boolean>(true);
@@ -79,25 +81,42 @@ export default function Home() {
         return;
     }
 
+    const newImages: Omit<ImageInfo, 'targetWidth' | 'targetHeight'>[] = [];
+
     imageFiles.forEach(file => {
       const reader = new FileReader();
       reader.onloadend = () => {
         const resultStr = reader.result as string;
         const img = new Image();
         img.onload = () => {
-          setImages(prevImages => {
-            const newImage = {
-              file,
-              preview: resultStr,
-              width: img.width,
-              height: img.height,
-            };
-            if (prevImages.length === 0) {
-              setWidth(String(img.width));
-              setHeight(String(img.height));
-            }
-            return [...prevImages, newImage];
+          newImages.push({
+            file,
+            preview: resultStr,
+            width: img.width,
+            height: img.height,
           });
+
+          if (newImages.length === imageFiles.length) {
+            setImages(prevImages => {
+              const updatedImages = [...prevImages];
+              const firstUpload = updatedImages.length === 0;
+              
+              newImages.forEach(newImg => {
+                updatedImages.push({
+                  ...newImg,
+                  targetWidth: firstUpload ? String(newImg.width) : globalWidth,
+                  targetHeight: firstUpload ? String(newImg.height) : globalHeight,
+                });
+              });
+
+              if (firstUpload && updatedImages.length > 0) {
+                 setGlobalWidth(String(updatedImages[0].width));
+                 setGlobalHeight(String(updatedImages[0].height));
+              }
+              
+              return updatedImages;
+            });
+          }
         };
         img.src = resultStr;
       };
@@ -126,32 +145,77 @@ export default function Home() {
   };
 
   const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+    setImages(prev => {
+        const newImages = prev.filter((_, i) => i !== index);
+        if (newImages.length === 0) {
+            setGlobalWidth("");
+            setGlobalHeight("");
+        }
+        return newImages;
+    });
   }
 
+  // Effect for GLOBAL width change
   useEffect(() => {
-    if (!keepAspectRatio || images.length === 0 || lastEdited !== 'width') return;
+    if (images.length === 0 || lastEdited !== 'width') return;
     
-    const firstImage = images[0];
-    const aspectRatio = firstImage.width / firstImage.height;
-    const newWidth = parseInt(width, 10);
+    const newWidth = parseInt(globalWidth, 10);
+    if (isNaN(newWidth)) return;
 
-    if (!isNaN(newWidth)) {
-      setHeight(String(Math.round(newWidth / aspectRatio)));
+    setImages(prev => prev.map(img => {
+      const aspectRatio = img.width / img.height;
+      const newHeight = keepAspectRatio ? String(Math.round(newWidth / aspectRatio)) : img.targetHeight;
+      return {...img, targetWidth: String(newWidth), targetHeight: newHeight};
+    }));
+    
+    if (keepAspectRatio && images.length > 0) {
+        const firstImage = images[0];
+        const aspectRatio = firstImage.width / firstImage.height;
+        setGlobalHeight(String(Math.round(newWidth / aspectRatio)));
     }
-  }, [width, keepAspectRatio, images, lastEdited]);
+  }, [globalWidth, keepAspectRatio, lastEdited]);
 
+  // Effect for GLOBAL height change
   useEffect(() => {
-    if (!keepAspectRatio || images.length === 0 || lastEdited !== 'height') return;
-    
-    const firstImage = images[0];
-    const aspectRatio = firstImage.width / firstImage.height;
-    const newHeight = parseInt(height, 10);
-    
-    if (!isNaN(newHeight)) {
-      setWidth(String(Math.round(newHeight * aspectRatio)));
+    if (images.length === 0 || lastEdited !== 'height') return;
+
+    const newHeight = parseInt(globalHeight, 10);
+    if (isNaN(newHeight)) return;
+
+    setImages(prev => prev.map(img => {
+        const aspectRatio = img.width / img.height;
+        const newWidth = keepAspectRatio ? String(Math.round(newHeight * aspectRatio)) : img.targetWidth;
+        return {...img, targetHeight: String(newHeight), targetWidth: newWidth};
+    }));
+
+    if (keepAspectRatio && images.length > 0) {
+        const firstImage = images[0];
+        const aspectRatio = firstImage.width / firstImage.height;
+        setGlobalWidth(String(Math.round(newHeight * aspectRatio)));
     }
-  }, [height, keepAspectRatio, images, lastEdited]);
+  }, [globalHeight, keepAspectRatio, lastEdited]);
+
+  const handleIndividualDimChange = (index: number, dimension: 'width' | 'height', value: string) => {
+    const numericValue = parseInt(value, 10);
+    setImages(prev => {
+        const newImages = [...prev];
+        const img = newImages[index];
+        if (dimension === 'width') {
+            img.targetWidth = value;
+            if (keepAspectRatio && !isNaN(numericValue)) {
+                const aspectRatio = img.width / img.height;
+                img.targetHeight = String(Math.round(numericValue / aspectRatio));
+            }
+        } else {
+            img.targetHeight = value;
+            if (keepAspectRatio && !isNaN(numericValue)) {
+                const aspectRatio = img.width / img.height;
+                img.targetWidth = String(Math.round(numericValue * aspectRatio));
+            }
+        }
+        return newImages;
+    });
+  };
 
   const handleDownload = async () => {
     if (images.length === 0) {
@@ -166,42 +230,7 @@ export default function Home() {
     setIsProcessing(true);
 
     try {
-      if (images.length === 1) {
-        // Single image download
-        const imageInfo = images[0];
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        if (!ctx) throw new Error("Could not get canvas context");
-        
-        const img = new Image();
-        img.src = imageInfo.preview;
-
-        await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-        });
-
-        const newWidth = parseInt(width, 10);
-        const newHeight = parseInt(height, 10);
-        canvas.width = newWidth;
-        canvas.height = newHeight;
-        ctx.drawImage(img, 0, 0, newWidth, newHeight);
-
-        const mimeType = `image/${format}`;
-        const dataUrl = canvas.toDataURL(mimeType, format !== 'png' ? quality / 100 : undefined);
-
-        const link = document.createElement("a");
-        link.href = dataUrl;
-        const originalName = imageInfo.file.name.substring(0, imageInfo.file.name.lastIndexOf('.'));
-        link.download = `${originalName}_${newWidth}x${newHeight}.${format}`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        // Bulk download as zip
         const zip = new JSZip();
-        const newWidth = parseInt(width, 10);
-        const newHeight = parseInt(height, 10);
 
         for (const imageInfo of images) {
             const canvas = document.createElement("canvas");
@@ -216,38 +245,49 @@ export default function Home() {
                 img.onerror = reject;
             });
             
-            // Adjust dimensions for each image while maintaining aspect ratio if locked
-            let finalWidth = newWidth, finalHeight = newHeight;
-            if(keepAspectRatio){
-                const aspectRatio = imageInfo.width / imageInfo.height;
-                if(lastEdited === 'width' || !lastEdited){
-                    finalHeight = Math.round(newWidth / aspectRatio);
-                } else {
-                    finalWidth = Math.round(newHeight * aspectRatio);
-                }
-            }
-
-            canvas.width = finalWidth;
-            canvas.height = finalHeight;
-            ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
+            const newWidth = parseInt(imageInfo.targetWidth, 10) || imageInfo.width;
+            const newHeight = parseInt(imageInfo.targetHeight, 10) || imageInfo.height;
+            
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+            ctx.drawImage(img, 0, 0, newWidth, newHeight);
 
             const mimeType = `image/${format}`;
             const dataUrl = canvas.toDataURL(mimeType, format !== 'png' ? quality / 100 : undefined);
             
             const originalName = imageInfo.file.name.substring(0, imageInfo.file.name.lastIndexOf('.'));
-            const fileName = `${originalName}_${finalWidth}x${finalHeight}.${format}`;
+            const fileName = `${originalName}_${newWidth}x${newHeight}.${format}`;
             zip.file(fileName, dataUrl.split(',')[1], { base64: true });
         }
+        
+        if (images.length === 1) {
+            const imageInfo = images[0];
+            const newWidth = parseInt(imageInfo.targetWidth, 10) || imageInfo.width;
+            const newHeight = parseInt(imageInfo.targetHeight, 10) || imageInfo.height;
+            const originalName = imageInfo.file.name.substring(0, imageInfo.file.name.lastIndexOf('.'));
+            const fileName = `${originalName}_${newWidth}x${newHeight}.${format}`;
 
-        const zipBlob = await zip.generateAsync({ type: "blob" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(zipBlob);
-        link.download = translations.download.zipName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
-      }
+            const fileBlob = await zip.file(fileName)?.async("blob");
+            if (fileBlob) {
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(fileBlob);
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            }
+
+        } else {
+            const zipBlob = await zip.generateAsync({ type: "blob" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(zipBlob);
+            link.download = translations.download.zipName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+        }
       
        toast({
         title: translations.toasts.downloadStarted.title,
@@ -319,14 +359,14 @@ export default function Home() {
                   <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-4 items-end">
                       <div className="space-y-2">
                           <Label htmlFor="width">{translations.options.width}</Label>
-                          <Input id="width" type="number" value={width} onChange={(e) => { setWidth(e.target.value); setLastEdited('width'); }} placeholder={images.length > 1 ? translations.options.autoPlaceholder : ""} />
+                          <Input id="width" type="number" value={globalWidth} onChange={(e) => { setGlobalWidth(e.target.value); setLastEdited('width'); }} placeholder={translations.options.allImages} />
                       </div>
                       <Button variant="ghost" size="icon" className="mb-1" onClick={() => setKeepAspectRatio(!keepAspectRatio)}>
                           {keepAspectRatio ? <Lock className="h-5 w-5" /> : <Unlock className="h-5 w-5 text-muted-foreground" />}
                       </Button>
                       <div className="space-y-2">
                           <Label htmlFor="height">{translations.options.height}</Label>
-                          <Input id="height" type="number" value={height} onChange={(e) => { setHeight(e.target.value); setLastEdited('height'); }} placeholder={images.length > 1 ? translations.options.autoPlaceholder : ""} />
+                          <Input id="height" type="number" value={globalHeight} onChange={(e) => { setGlobalHeight(e.target.value); setLastEdited('height'); }} placeholder={translations.options.allImages} />
                       </div>
                   </div>
 
@@ -383,28 +423,47 @@ export default function Home() {
           <Card className="flex items-center justify-center p-4 min-h-[400px] lg:min-h-0 bg-card/50">
             {images.length > 0 ? (
               <ScrollArea className="w-full h-full max-h-[70vh]">
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-1">
                   {images.map((image, index) => (
-                      <div key={index} className="relative group aspect-square">
-                      <NextImage
-                          src={image.preview}
-                          alt={`${translations.preview.alt} ${index + 1}`}
-                          fill
-                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                          style={{ objectFit: 'cover' }}
-                          className="rounded-lg"
-                      />
-                       <Button
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => removeImage(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs text-center p-1 rounded-b-lg">
-                          {image.width}x{image.height}
-                      </div>
+                      <div key={index} className="relative group space-y-2 rounded-lg border p-2 bg-background">
+                        <div className="relative aspect-video">
+                          <NextImage
+                              src={image.preview}
+                              alt={`${translations.preview.alt} ${index + 1}`}
+                              fill
+                              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                              style={{ objectFit: 'contain' }}
+                              className="rounded-md"
+                          />
+                          <Button
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => removeImage(index)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs text-center p-1 rounded-b-md">
+                              {image.width}x{image.height}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                           <Input 
+                                type="number"
+                                placeholder={translations.options.width.split(' ')[0]}
+                                value={image.targetWidth}
+                                onChange={(e) => handleIndividualDimChange(index, 'width', e.target.value)}
+                                className="text-xs h-8"
+                           />
+                           <span className="text-muted-foreground">x</span>
+                           <Input 
+                                type="number"
+                                placeholder={translations.options.height.split(' ')[0]}
+                                value={image.targetHeight}
+                                onChange={(e) => handleIndividualDimChange(index, 'height', e.target.value)}
+                                className="text-xs h-8"
+                           />
+                        </div>
                       </div>
                   ))}
                   </div>
@@ -474,3 +533,5 @@ export default function Home() {
     </div>
   );
 }
+
+    
