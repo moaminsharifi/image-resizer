@@ -228,7 +228,7 @@ export default function Home() {
         const zipBlob = await zip.generateAsync({ type: "blob" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(zipBlob);
-        link.download = `Imagerite_processed_images.zip`;
+        link.download = `ImageResizer_processed_images.zip`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -258,7 +258,7 @@ export default function Home() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Sparkles className="text-accent h-6 w-6" />
-              <CardTitle className="text-2xl font-headline">Imagerite</CardTitle>
+              <CardTitle className="text-2xl font-headline">Image Resizer</CardTitle>
             </div>
             <CardDescription>Upload, resize, and optimize your images in seconds.</CardDescription>
           </CardHeader>

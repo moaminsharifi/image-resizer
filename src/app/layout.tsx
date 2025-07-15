@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'Imagerite - Simple Image Processing',
-  description: 'Upload, resize, compress, and convert images easily with Imagerite.',
+  title: 'Image Resizer',
+  description: 'Upload, resize, compress, and convert images easily.',
 };
 
 export default function RootLayout({
