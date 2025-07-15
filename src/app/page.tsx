@@ -34,7 +34,8 @@ import { cn } from "@/lib/utils";
 import JSZip from "jszip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Link from "next/link";
-import translations from '@/locales/en.json';
+import { useLanguage } from "@/hooks/use-language";
+import LanguageSwitcher from "@/components/language-switcher";
 
 type Format = "jpeg" | "png" | "webp";
 
@@ -46,6 +47,7 @@ interface ImageInfo {
 }
 
 export default function Home() {
+  const { translations } = useLanguage();
   const [images, setImages] = useState<ImageInfo[]>([]);
   const [width, setWidth] = useState<string>("");
   const [height, setHeight] = useState<string>("");
@@ -59,6 +61,12 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  useEffect(() => {
+    if (translations.metadata.title) {
+      document.title = translations.metadata.title;
+    }
+  }, [translations]);
+  
   const handleImageUpload = (files: FileList) => {
     const imageFiles = Array.from(files).filter(file => file.type.startsWith("image/"));
     
@@ -452,6 +460,10 @@ export default function Home() {
                   </Link>
                 </li>
               </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">{translations.footer.language.title}</h3>
+              <LanguageSwitcher />
             </div>
           </div>
           <div className="mt-8 border-t border-border pt-6 text-center text-xs">

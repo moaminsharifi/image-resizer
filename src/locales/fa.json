@@ -1,0 +1,88 @@
+{
+  "metadata": {
+    "title": "تغییر اندازه تصویر",
+    "description": "ابزاری رایگان و حافظ حریم خصوصی برای تغییر اندازه، فشرده‌سازی و تبدیل تصاویر در مرورگر شما."
+  },
+  "main": {
+    "title": "تغییر اندازه تصویر",
+    "description": "تصاویر خود را در چند ثانیه بارگذاری، تغییر اندازه و بهینه‌سازی کنید."
+  },
+  "upload": {
+    "clickToUpload": "برای بارگذاری کلیک کنید",
+    "dragAndDrop": "یا بکشید و رها کنید",
+    "fileTypes": "PNG, JPG, WEBP تا ۱۰ مگابایت"
+  },
+  "options": {
+    "width": "عرض (پیکسل)",
+    "height": "ارتفاع (پیکسل)",
+    "autoPlaceholder": "خودکار",
+    "format": "فرمت",
+    "selectFormat": "یک فرمت انتخاب کنید",
+    "quality": "کیفیت"
+  },
+  "formats": {
+    "jpeg": "JPEG",
+    "png": "PNG",
+    "webp": "WebP"
+  },
+  "download": {
+    "processing": "در حال پردازش...",
+    "downloadSingle": "دانلود تصویر",
+    "downloadMultiple": "دانلود {count} تصویر",
+    "zipName": "تصاویر_پردازش_شده.zip"
+  },
+  "preview": {
+    "title": "پیش‌نمایش تصویر",
+    "description": "تصاویر بارگذاری شده شما در اینجا ظاهر می‌شوند.",
+    "alt": "پیش‌نمایش تصویر"
+  },
+  "toasts": {
+    "noValidFiles": {
+      "title": "فایل معتبر نیست",
+      "description": "لطفاً فایل‌های تصویری معتبر (PNG, JPEG, WebP و غیره) بارگذاری کنید."
+    },
+    "noImages": {
+      "title": "تصویری وجود ندارد",
+      "description": "لطفاً ابتدا یک یا چند تصویر بارگذاری کنید."
+    },
+    "downloadStarted": {
+      "title": "دانلود شروع شد",
+      "description": "تصویر(های) پردازش شده شما در حال دانلود هستند."
+    },
+    "processingError": {
+      "title": "خطا در پردازش",
+      "description": "در حین پردازش تصاویر شما مشکلی پیش آمد."
+    }
+  },
+  "footer": {
+    "title": "تغییر اندازه تصویر",
+    "description": "ابزاری ساده، رایگان و متمرکز بر حریم خصوصی برای تغییر اندازه، فشرده‌سازی و تبدیل تصاویر شما مستقیماً در مرورگر. بدون بارگذاری، بدون جمع‌آوری داده.",
+    "credit": {
+      "text": "moaminsharifi.com",
+      "url": "https://moaminsharifi.com"
+    },
+    "sourceCode": {
+      "text": "کد منبع",
+      "url": "https://github.com/moaminsharifi/image-resizer"
+    },
+    "otherProjects": {
+      "title": "پروژه‌های دیگر",
+      "subtitleFlow": {
+        "title": "Subtitle Flow",
+        "description": "ابزاری برای ایجاد رونویسی با هوش مصنوعی و خروجی به هر زبانی.",
+        "url": "https://github.com/moaminsharifi/subtitle-flow"
+      },
+      "autoCast": {
+        "title": "Auto Cast",
+        "description": "ابزاری برای ایجاد پادکست با هوش مصنوعی با سفارشی‌سازی فراوان.",
+        "url": "https://github.com/moaminsharifi/auto-cast"
+      }
+    },
+    "language": {
+      "title": "زبان",
+      "english": "انگلیسی (English)",
+      "persian": "فارسی"
+    },
+    "copyright": "ساخته شده توسط مؤمن شریفی. تمام حقوق محفوظ است."
+  }
+}

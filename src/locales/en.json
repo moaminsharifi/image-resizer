@@ -78,6 +78,11 @@
         "url": "https://github.com/moaminsharifi/auto-cast"
       }
     },
+    "language": {
+      "title": "Language",
+      "english": "English",
+      "persian": "Persian (فارسی)"
+    },
     "copyright": "Created by Moamin Sharifi. All Rights Reserved."
   }
 }
